@@ -6,6 +6,8 @@ dist/
 .env.local
 coverage/
 .DS_Store
+*.zip
+packages/web/downloads/
 
 # Documentation and agent files excluded from submission repository
 docs/

@@ -15,6 +15,7 @@
     "fixture-server": "tsx packages/fixture-server/src/index.ts",
     "api": "tsx packages/api/src/index.ts",
     "web": "tsx packages/web/src/server.ts",
+    "demo": "tsx scripts/run-demo.ts",
     "dev": "tsx packages/api/src/index.ts"
   },
   "devDependencies": {
