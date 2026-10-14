@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "ThreatLens - In-Context Message Security",
+  "version": "0.3.0",
+  "description": "Locally checks visible messages on sites you enable and investigates selected suspicious links.",
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
+  "host_permissions": ["http://localhost:3001/*", "http://127.0.0.1:3001/*"],
+  "optional_host_permissions": [
+    "http://localhost:4001/*",
+    "http://127.0.0.1:4001/*",
+    "https://mail.google.com/*",
+    "https://web.whatsapp.com/*"
+  ],
+  "action": { "default_title": "Open ThreatLens Message Inspector" },
+  "background": { "service_worker": "dist/background.js", "type": "module" },
+  "side_panel": { "default_path": "sidepanel.html" }
+}

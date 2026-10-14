@@ -1,0 +1,14 @@
+node_modules/
+**/dist/
+dist/
+*.log
+.env
+.env.local
+coverage/
+.DS_Store
+
+# Documentation and agent files excluded from submission repository
+docs/
+GEMINI.md
+CHROMEWEBSTORE.md
+README.md

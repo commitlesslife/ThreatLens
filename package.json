@@ -1,0 +1,30 @@
+{
+  "name": "threatlens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Evidence-backed URL and message investigation system",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces && npm run build:extension",
+    "build:extension": "node packages/extension/build.mjs",
+    "build:web": "node packages/web/build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fixture-server": "tsx packages/fixture-server/src/index.ts",
+    "api": "tsx packages/api/src/index.ts",
+    "web": "tsx packages/web/src/server.ts",
+    "dev": "tsx packages/api/src/index.ts"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^22.10.2",
+    "jsdom": "^29.1.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

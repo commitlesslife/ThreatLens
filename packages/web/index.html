@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThreatLens — Evidence-Backed Investigation</title>
+  <link rel="stylesheet" href="src/app.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="logo-shield">🛡️</span>
+        <div>
+          <h1 class="brand-title">ThreatLens</h1>
+          <span class="brand-sub">Evidence-Backed Security Analysis</span>
+        </div>
+      </div>
+      <div class="header-nav">
+        <span id="api-status-badge" class="badge badge-neutral">Connecting API...</span>
+        <button id="btn-open-cases" class="btn btn-secondary">
+          📁 Casebook <span id="cases-count-badge" class="counter-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main">
+    <div class="content-container">
+
+      <!-- Section 1: Intake Card -->
+      <section class="card intake-card">
+        <div class="card-header">
+          <h2>New Investigation</h2>
+          <span class="subtitle">Submit a message, destination URL, or both to evaluate potential deception.</span>
+        </div>
+
+        <!-- Preset Buttons for Quick Rehearsal / Review -->
+        <div class="presets-bar">
+          <span class="preset-label">Test Fixtures:</span>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/scholarship" data-msg="URGENT: Your student scholarship disbursement of $2,500 is pending. Verify your campus password within 2 hours.">
+            🚨 Scholarship Phish
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/cloaked" data-msg="Security notice: Please re-authenticate your account on mobile to confirm enrollment.">
+            🛡️ Cloaked Target
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/brand-clone" data-msg="Apex Financial: Unusual activity detected. Please sign in to verify your account identity.">
+            🏦 Brand Clone
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/benign-portal" data-msg="University Library: Your requested book hold is ready for pickup at the main library desk.">
+            ✅ Benign Portal
+          </button>
+        </div>
+
+        <form id="intake-form" class="intake-form">
+          <div class="form-group">
+            <label for="input-url">Destination URL</label>
+            <input type="text" id="input-url" placeholder="http://localhost:4001/fixtures/scholarship" />
+            <span class="input-hint">Local controlled fixtures on port 4001 are inspected. Public URLs fail closed safely by design.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="input-message">Message Excerpt (Email, Chat, SMS)</label>
+            <textarea id="input-message" rows="3" placeholder="Paste the visible message text containing the suspicious link or urgent prompt..."></textarea>
+            <span class="input-hint">Sensitive tokens and credentials in inputs are automatically sanitized and redacted.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group mode-group">
+              <label>Analysis Mode</label>
+              <div class="radio-options">
+                <label class="radio-label">
+                  <input type="radio" name="requestedMode" value="passive" checked />
+                  <span>Passive Inspection (Default safe observation)</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="requestedMode" value="authorized_fixture_probe" />
+                  <span>Authorized Fixture Lab (Synthetic Canary Probe)</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="scope-input-wrapper" class="form-group scope-group" style="display: none;">
+              <label for="input-scope-id">Fixture Scope ID</label>
+              <div class="scope-flex">
+                <input type="text" id="input-scope-id" placeholder="UUID authorization scope" />
+                <button type="button" id="btn-issue-scope" class="btn btn-secondary btn-sm">Issue Lab Scope</button>
+              </div>
+              <span class="input-hint">Active probes require a server-enforced, unexpired scope.</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-start-analysis" class="btn btn-primary">Start Investigation</button>
+            <button type="button" id="btn-cancel-analysis" class="btn btn-secondary" style="display: none;">Cancel Investigation</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Section 2: Real Progress & Events Feed -->
+      <section id="progress-card" class="card progress-card" style="display: none;">
+        <div class="card-header">
+          <div class="flex-header">
+            <h3>Investigation Lifecycle</h3>
+            <span id="lifecycle-status-pill" class="status-pill status-admitting">admitting</span>
+          </div>
+          <span class="subtitle">Real progress events emitted monotonically as each pipeline stage completes.</span>
+        </div>
+
+        <div class="stages-stepper">
+          <div class="step-node" id="step-admitting"><span class="step-num">1</span> Admitting</div>
+          <div class="step-arrow">→</div>
+          <div class="step-node" id="step-observing"><span class="step-num">2</span> Observing</div>
+          <div class="step-arrow">→</div>
+          <div class="step-node" id="step-comparing"><span class="step-num">3</span> Comparing</div>
+          <div class="step-arrow">→</div>
+          <div class="step-node" id="step-probing"><span class="step-num">4</span> Probing</div>
+          <div class="step-arrow">→</div>
+          <div class="step-node" id="step-assessing"><span class="step-num">5</span> Assessing</div>
+        </div>
+
+        <div class="events-log-container">
+          <div class="events-log-header">
+            <span>Ordered Evidence Events Stream</span>
+            <span id="sse-status" class="sse-badge">Connecting SSE...</span>
+          </div>
+          <div id="events-stream-list" class="events-list">
+            <!-- Events dynamically appended here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Comprehensive Evidence Report Card -->
+      <section id="report-card" class="card report-card" style="display: none;">
+        <!-- Verdict Banner -->
+        <div id="verdict-banner" class="verdict-banner verdict-caution">
+          <div class="verdict-header">
+            <span id="verdict-badge" class="verdict-badge">ACTION CONCERN SUPPORTED</span>
+            <div class="severity-box">
+              <span class="severity-label">Severity Index:</span>
+              <span id="severity-score" class="severity-score">82 / 100</span>
+              <span id="severity-band-badge" class="badge badge-high">High Risk</span>
+            </div>
+          </div>
+          <p id="verdict-summary" class="verdict-summary"></p>
+        </div>
+
+        <!-- Section: Multi-Profile Observation Comparison -->
+        <div id="profile-comparison-section" class="report-section">
+          <h4>Multi-Profile Observation (Cloaking & Differential Inspection)</h4>
+          <p class="section-desc">Controlled comparison across crawler, desktop, and mobile user-agents to detect intentional discrepancies.</p>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Profile Engine</th>
+                  <th>User-Agent Spec</th>
+                  <th>HTTP Status</th>
+                  <th>Rendered Title</th>
+                  <th>Credential Form</th>
+                </tr>
+              </thead>
+              <tbody id="profile-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+          <div id="cloaking-alert-box" class="alert-box alert-amber" style="display: none;">
+            <strong>⚠️ Cloaking Detected:</strong>
+            <span id="cloaking-alert-text">The website served different content to an automated crawler than to a mobile device.</span>
+          </div>
+        </div>
+
+        <!-- Section: Brand & Canonical Domain Inspection -->
+        <div id="brand-inspection-section" class="report-section">
+          <h4>Claimed Brand & Domain Relationship</h4>
+          <div class="brand-relationship-card">
+            <div class="brand-item">
+              <span class="meta-label">Claimed Organization / Entity:</span>
+              <span id="brand-claimed-name" class="meta-val font-semibold">—</span>
+            </div>
+            <div class="brand-item">
+              <span class="meta-label">Observed Target Host:</span>
+              <code id="brand-observed-host" class="meta-val">—</code>
+            </div>
+            <div class="brand-item">
+              <span class="meta-label">Canonical Brand Domains:</span>
+              <span id="brand-canonical-domains" class="meta-val">—</span>
+            </div>
+            <div class="brand-item">
+              <span class="meta-label">Relationship Evaluation:</span>
+              <span id="brand-eval-badge" class="badge">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Synthetic Canary Probe (when executed) -->
+        <div id="synthetic-probe-section" class="report-section" style="display: none;">
+          <h4>Authorized Synthetic Canary Probe</h4>
+          <p class="section-desc">Active form interaction performed strictly on authorized fixture targets using synthetic test canaries.</p>
+          <div class="probe-card">
+            <div class="probe-row">
+              <span>Synthetic Canary Marker:</span>
+              <code id="probe-canary-marker" class="canary-code">TL-CANARY-[Fingerprint]</code>
+              <span class="badge badge-synthetic">SYNTHETIC TEST CANARY</span>
+            </div>
+            <div class="probe-row">
+              <span>Team Mock Receiver Delivery:</span>
+              <span id="probe-receipt-status" class="badge badge-success">Receiver Confirmed (HTTP 201)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Cited Reasons & Evidence Trace -->
+        <div class="report-section">
+          <h4>Cited Reasons with Supporting Evidence</h4>
+          <ul id="reasons-list" class="reasons-list">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <!-- Section: Actionable Next Steps -->
+        <div class="report-section">
+          <h4>Recommended Next Steps</h4>
+          <div id="next-steps-container" class="next-steps-box">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Section: Explicit Limitations & Coverage -->
+        <div class="report-section">
+          <h4>Investigation Limitations & Coverage Breakdown</h4>
+          <div class="coverage-pills" id="coverage-pills-container">
+            <!-- Coverage tags -->
+          </div>
+          <ul id="limitations-list" class="limitations-list">
+            <!-- Limitations items -->
+          </ul>
+        </div>
+
+        <!-- Report Footer / Actions -->
+        <div class="report-footer">
+          <button type="button" id="btn-save-case" class="btn btn-primary">Save to Casebook</button>
+          <span id="save-case-feedback" class="feedback-msg"></span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Casebook Drawer -->
+  <aside id="casebook-drawer" class="drawer" style="display: none;">
+    <div class="drawer-header">
+      <h3>ThreatLens Casebook</h3>
+      <button type="button" id="btn-close-cases" class="btn-icon">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div id="cases-list-container" class="cases-list">
+        <p class="empty-text">No cases saved yet. Complete an investigation and click "Save to Casebook".</p>
+      </div>
+    </div>
+  </aside>
+
+  <script type="module" src="dist/app.js"></script>
+</body>
+</html>

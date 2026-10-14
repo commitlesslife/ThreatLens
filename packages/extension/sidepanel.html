@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThreatLens Message Inspector</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="panel-container">
+    <!-- Top Header -->
+    <header class="panel-header">
+      <div class="brand">
+        <span class="brand-name">ThreatLens</span>
+        <span class="brand-tag">In-Context</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-toggle-pause" class="icon-btn" title="Pause / Resume Scanning" style="display: none;">
+          <span id="pause-status-indicator" class="status-pill active">Active</span>
+        </button>
+        <button id="btn-open-settings" class="icon-btn" title="Settings & Privacy">⚙️</button>
+      </div>
+    </header>
+
+    <!-- View 1: Mandatory Privacy Disclosure & Affirmative Consent -->
+    <section id="view-consent" class="view-section">
+      <div class="card disclosure-card">
+        <h2>In-Context Protection</h2>
+        <p class="subtitle">
+          ThreatLens evaluates visible messages directly inside webmail and chat tabs so you can spot deceptive links before clicking.
+        </p>
+
+        <div class="privacy-checklist">
+          <div class="check-item">
+            <span class="check-icon">🔒</span>
+            <div>
+              <strong>100% On-Device Initial Pass</strong>
+              <p>Message text and candidate links are evaluated locally in your browser first.</p>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">👁️</span>
+            <div>
+              <strong>Visible Messages Only</strong>
+              <p>Only messages currently visible on screen are inspected. Never crawls background mailboxes, hidden history, or cookies.</p>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-icon">🛡️</span>
+            <div>
+              <strong>Strict Backend Handoff</strong>
+              <p>Clicking "Investigate" transmits only the selected excerpt and destination link. No entire page or private chat history is sent.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="consent-action">
+          <button id="btn-grant-consent" class="primary-btn">Enable Protection</button>
+          <p class="footnote">You can pause scanning or revoke access at any time from Settings.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 2: Active Inspector View -->
+    <section id="view-active" class="view-section" style="display: none;">
+      <!-- Active Site Banner -->
+      <div class="active-site-bar">
+        <div class="site-info">
+          <span id="site-adapter-badge" class="badge">Checking page...</span>
+        </div>
+        <button id="btn-refresh-scan" class="text-btn">Refresh Scan</button>
+      </div>
+
+      <!-- Investigation Live Status Card (when active) -->
+      <div id="investigation-status-card" class="card investigation-card" style="display: none;">
+        <div class="card-header">
+          <span class="card-title">ThreatLens Deep Sandbox</span>
+          <span id="inv-status-pill" class="status-pill">queued</span>
+        </div>
+        <p id="inv-message-text" class="inv-summary"></p>
+        <div class="inv-details">
+          <div>Analysis ID: <code id="inv-id"></code></div>
+        </div>
+        <button id="btn-open-web-report" class="primary-btn" style="display: none; margin-top: 8px; width: 100%;">Open full evidence in ThreatLens Web</button>
+        <button id="btn-dismiss-inv" class="secondary-btn" style="margin-top: 6px; width: 100%;">Close</button>
+      </div>
+
+      <!-- Messages Stream List -->
+      <div id="messages-container" class="messages-list">
+        <div class="empty-state">
+          <p>No supported messages visible on this page.</p>
+          <span class="hint">Open the synthetic inbox fixture to see live detection.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Settings & Privacy Management -->
+    <section id="view-settings" class="view-section" style="display: none;">
+      <div class="card settings-card">
+        <div class="card-header">
+          <h2>Privacy & Site Controls</h2>
+          <button id="btn-close-settings" class="text-btn">← Back</button>
+        </div>
+
+        <div class="setting-group">
+          <h3>Scanning Status</h3>
+          <div class="setting-row">
+            <div>
+              <strong>In-Context Scanning</strong>
+              <p>Evaluate visible messages on active supported tabs</p>
+            </div>
+            <input type="checkbox" id="toggle-scanning-active" checked />
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <h3>Supported Adapters</h3>
+          <div class="setting-row">
+            <div>
+              <strong>Synthetic Test Fixtures</strong>
+              <p>Team-owned local inbox and chat fixtures</p>
+            </div>
+            <input type="checkbox" id="toggle-adapter-synthetic" checked />
+          </div>
+          <div class="setting-row">
+            <div>
+              <strong>Gmail Web (Prototype)</strong>
+              <p>mail.google.com open message reading</p>
+            </div>
+            <input type="checkbox" id="toggle-adapter-gmail" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <strong>WhatsApp Web (Prototype)</strong>
+              <p>web.whatsapp.com visible bubbles</p>
+            </div>
+            <input type="checkbox" id="toggle-adapter-whatsapp" />
+          </div>
+        </div>
+
+        <div class="setting-group danger-zone">
+          <h3>Revoke Access</h3>
+          <p class="footnote">Immediately stops all scanning and resets consent.</p>
+          <button id="btn-revoke-consent" class="danger-btn">Revoke Permissions & Stop</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="dist/sidepanel.js"></script>
+</body>
+</html>
