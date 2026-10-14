@@ -1,2 +1,4 @@
 @echo off
-npm run demo -- %*
+setlocal
+cd /d "%~dp0"
+call npm run demo -- %*
