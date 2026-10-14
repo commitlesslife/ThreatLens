@@ -1,4 +1,4 @@
-import { findAdapterForUrl } from "./adapters/index.js";
+import { getAdapterForUrl } from "./adapters/index.js";
 import { getSettings } from "./storage/settings.js";
 import { ExtensionMessage } from "./types.js";
 
@@ -8,13 +8,19 @@ declare global {
 
 async function initContentScript(): Promise<void> {
   if (window.__threatLensContentInitialized) return;
-  const adapter = findAdapterForUrl(window.location.href);
+  const adapter = getAdapterForUrl(window.location.href);
   if (!adapter) return;
   window.__threatLensContentInitialized = true;
 
+  const isAdapterEnabled = (settings: Awaited<ReturnType<typeof getSettings>>) => {
+    return adapter.id === "generic-web"
+      ? settings.enabledSites["generic-web"] !== false
+      : settings.enabledSites[adapter.id] === true;
+  };
+
   const scan = async (): Promise<{ success: boolean; messages: ReturnType<typeof adapter.extractVisibleMessages> }> => {
     const settings = await getSettings();
-    const enabled = settings.consentGranted && settings.scanningEnabled && settings.enabledSites[adapter.id] === true;
+    const enabled = settings.consentGranted && settings.scanningEnabled && isAdapterEnabled(settings);
     if (!enabled) return { success: false, messages: [] };
     const messages = adapter.extractVisibleMessages(document);
     chrome.runtime.sendMessage({
@@ -51,7 +57,7 @@ async function initContentScript(): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const observer = new MutationObserver(() => {
     void getSettings().then(settings => {
-      if (!settings.consentGranted || !settings.scanningEnabled || settings.enabledSites[adapter.id] !== true) return;
+      if (!settings.consentGranted || !settings.scanningEnabled || !isAdapterEnabled(settings)) return;
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { void scan(); }, 500);
     });

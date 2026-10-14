@@ -103,5 +103,124 @@ export const FIXTURE_MANIFEST: FixtureDescriptor[] = [
     targetReceiverPath: "/receiver/canary",
     expectedVerdict: "action_concern_supported",
     tags: ["extension_intake", "in_context_chat", "phishing_lure"]
+  },
+  {
+    id: "credential-harvest",
+    title: "IT Helpdesk SSO Verification Phish",
+    path: "/fixtures/credential-harvest",
+    description: "Fake Single Sign-On login demanding immediate institutional password and MFA token to avert account deactivation.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Fake SSO portal with password and MFA fields." },
+      desktop: { expectedStatus: 200, summary: "Standard corporate SSO replica." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile optimized SSO login view." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["credential_harvesting", "mfa_phish", "urgency_pressure"]
+  },
+  {
+    id: "payment-fraud",
+    title: "Urgent Wire & Cryptocurrency Overdue Invoice",
+    path: "/fixtures/payment-fraud",
+    description: "High-pressure invoice scam claiming past due penalty fees with crypto wallet address and routing credentials.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Urgent invoice with payment countdown." },
+      desktop: { expectedStatus: 200, summary: "Desktop invoice review portal." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile invoice payment view." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["payment_fraud", "invoice_scam", "wire_lure"]
+  },
+  {
+    id: "fake-update",
+    title: "Critical Browser Security Update Lure",
+    path: "/fixtures/fake-update",
+    description: "Deceptive system notification warning of zero-day vulnerabilities urging immediate download of an executable patch.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Fake browser security alert." },
+      desktop: { expectedStatus: 200, summary: "High-urgency browser patch warning." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile OS update alert." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["fake_update", "malware_lure", "drive_by_phish"]
+  },
+  {
+    id: "gift-card-scam",
+    title: "$500 Gift Card Reward Survey Scam",
+    path: "/fixtures/gift-card-scam",
+    description: "Prize lottery lure promising an instant $500 gift card upon submission of student ID, SSN, and phone PIN.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Prize claim portal." },
+      desktop: { expectedStatus: 200, summary: "Desktop reward claim interface." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile reward voucher view." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["lottery_scam", "identity_theft", "pin_harvesting"]
+  },
+  {
+    id: "qr-phish",
+    title: "2FA Reset QR Code Phishing Portal",
+    path: "/fixtures/qr-phish",
+    description: "Phishing lure presenting a deceptive QR code claiming to sync university multi-factor authentication tokens.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "QR code synchronization portal." },
+      desktop: { expectedStatus: 200, summary: "Desktop QR authenticator setup view." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile QR authenticator setup view." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["qr_phish", "mfa_bypass", "quishing"]
+  },
+  {
+    id: "ceo-fraud",
+    title: "Executive Whaling & Gift Card Memo",
+    path: "/fixtures/ceo-fraud",
+    description: "Impersonates the University Chancellor / Dean requesting immediate confidential phone contact and purchase.",
+    category: "phishing",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Confidential executive request memo." },
+      desktop: { expectedStatus: 200, summary: "Desktop executive memo notice." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile executive memo view." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["whaling", "executive_impersonation", "social_engineering"]
+  },
+  {
+    id: "brand-clone-apex",
+    title: "Apex Financial Brand Clone Portal",
+    path: "/fixtures/brand-clone-apex",
+    description: "Impersonates Apex Financial services branding and client login styling on an unauthorized test domain.",
+    category: "brand_impersonation",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Apex Financial replica portal." },
+      desktop: { expectedStatus: 200, summary: "Full desktop replica with gold/navy theme." },
+      mobileEmulated: { expectedStatus: 200, summary: "Mobile banking portal replica." }
+    },
+    targetReceiverPath: "/receiver/canary",
+    expectedVerdict: "action_concern_supported",
+    tags: ["brand_impersonation", "apex_financial", "financial_phish"]
+  },
+  {
+    id: "benign-research",
+    title: "Department of Computer Science Research Lab",
+    path: "/fixtures/benign-research",
+    description: "Official university research laboratory page with faculty publications, seminar schedules, and clean outbound links.",
+    category: "benign",
+    variants: {
+      crawler: { expectedStatus: 200, summary: "Academic lab portal with verified citations." },
+      desktop: { expectedStatus: 200, summary: "Standard desktop academic department portal." },
+      mobileEmulated: { expectedStatus: 200, summary: "Responsive mobile academic page." }
+    },
+    expectedVerdict: "expected_flow_supported",
+    tags: ["benign", "academic_portal", "expected_flow"]
   }
 ];

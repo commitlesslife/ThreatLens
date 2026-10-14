@@ -568,6 +568,14 @@ function checkUrlParameters(): void {
     updateStepper("assessing");
     void fetchAndRenderReport(analysisId);
   }
+
+  const target = params.get("target");
+  const msg = params.get("msg") || params.get("message");
+  if (target) {
+    inputUrl.value = target;
+    if (msg) inputMessage.value = msg;
+    inputUrl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 // Initialize

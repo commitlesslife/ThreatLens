@@ -1,6 +1,6 @@
 import { getSettings, grantConsent, revokeConsent, toggleScanning, updateSettings } from "./storage/settings.js";
 import { ExtractedMessage, ExtensionMessage, ExtensionSettings } from "./types.js";
-import { findAdapterForUrl } from "./adapters/index.js";
+import { getAdapterForUrl } from "./adapters/index.js";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const viewConsent = $("view-consent");
@@ -35,7 +35,8 @@ const SITE_ACCESS: Record<string, { origins: string[]; matches: string[]; name: 
     matches: ["http://localhost:4001/fixtures/*", "http://127.0.0.1:4001/fixtures/*"]
   },
   "gmail-web": { name: "Gmail Web", origins: ["https://mail.google.com/*"], matches: ["https://mail.google.com/*"] },
-  "whatsapp-web": { name: "WhatsApp Web", origins: ["https://web.whatsapp.com/*"], matches: ["https://web.whatsapp.com/*"] }
+  "whatsapp-web": { name: "WhatsApp Web", origins: ["https://web.whatsapp.com/*"], matches: ["https://web.whatsapp.com/*"] },
+  "generic-web": { name: "Universal Web", origins: ["<all_urls>"], matches: ["<all_urls>"] }
 };
 let currentSettings: ExtensionSettings;
 let lastMessages: ExtractedMessage[] = [];
@@ -116,7 +117,7 @@ async function requestTabScan(): Promise<void> {
     return;
   }
 
-  const adapter = findAdapterForUrl(url);
+  const adapter = getAdapterForUrl(url);
   if (!adapter) {
     const host = (() => { try { return new URL(url).hostname; } catch { return ""; } })();
     siteAdapterBadge.textContent = "Unsupported site";

@@ -201,17 +201,27 @@ async function main() {
   console.log("  🖥️  Web Application:       http://localhost:" + activeWebPort);
   console.log("  ⚙️  REST & SSE API:         http://localhost:3001");
   console.log("  🏥 API Health Live:        http://localhost:3001/health/live\n");
-  console.log("  🧪 Controlled Test Fixtures:");
-  console.log("     • Simulated Webmail:    http://localhost:4001/fixtures/synthetic-inbox");
-  console.log("     • Simulated Chat:       http://localhost:4001/fixtures/synthetic-chat");
-  console.log("     • Scholarship Lure:     http://localhost:4001/fixtures/scholarship");
-  console.log("     • Anti-Crawl Cloaking:  http://localhost:4001/fixtures/cloaked");
-  console.log("     • Brand Clone (Bank):   http://localhost:4001/fixtures/brand-clone");
-  console.log("     • Benign Campus Portal: http://localhost:4001/fixtures/benign-portal");
-  console.log("     • Mock Canary Receipts: http://localhost:4001/receiver/receipts\n");
-  console.log("  🧩 Chrome Extension (MV3):");
+  console.log("  🧪 Controlled Test Fixtures & Sample Detector URLs:");
+  console.log("     • Interactive Test Lab Hub: http://localhost:4001/fixtures/samples");
+  console.log("     • Simulated Webmail Inbox:  http://localhost:4001/fixtures/synthetic-inbox");
+  console.log("     • Simulated Group Chat:     http://localhost:4001/fixtures/synthetic-chat");
+  console.log("     • Scholarship Phish:        http://localhost:4001/fixtures/scholarship");
+  console.log("     • Anti-Crawl Cloaking:      http://localhost:4001/fixtures/cloaked");
+  console.log("     • State Bank Brand Clone:   http://localhost:4001/fixtures/brand-clone");
+  console.log("     • Apex Financial Clone:     http://localhost:4001/fixtures/brand-clone-apex");
+  console.log("     • SSO Credential Harvest:   http://localhost:4001/fixtures/credential-harvest");
+  console.log("     • Wire & Invoice Scam:      http://localhost:4001/fixtures/payment-fraud");
+  console.log("     • Fake Security Patch:      http://localhost:4001/fixtures/fake-update");
+  console.log("     • $500 Reward Scam:         http://localhost:4001/fixtures/gift-card-scam");
+  console.log("     • 2FA QR Phish:             http://localhost:4001/fixtures/qr-phish");
+  console.log("     • Chancellor Whaling Memo:  http://localhost:4001/fixtures/ceo-fraud");
+  console.log("     • Benign Student Portal:    http://localhost:4001/fixtures/benign-portal");
+  console.log("     • Benign Research Lab:      http://localhost:4001/fixtures/benign-research");
+  console.log("     • Mock Canary Receipts:     http://localhost:4001/receiver/receipts\n");
+  console.log("  🧩 Chrome Extension (MV3 - Universal Page Scanner):");
   console.log("     1. Directory: " + path.resolve("packages/extension"));
-  console.log("     2. Developer Mode: Unpacked MV3 Extension with Side Panel\n");
+  console.log("     2. Permissions: Universal access across any website with on-device scanner");
+  console.log("     3. Mode: Unpacked MV3 Extension with Side Panel\n");
 
   if (shouldOpenBrowser) {
     launchBrowser(activeWebPort);

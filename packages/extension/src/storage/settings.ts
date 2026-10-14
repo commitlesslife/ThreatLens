@@ -7,7 +7,8 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   enabledSites: {
     "synthetic-fixture": true,
     "gmail-web": false,
-    "whatsapp-web": false
+    "whatsapp-web": false,
+    "generic-web": true
   },
   apiBaseUrl: "http://localhost:3001"
 };

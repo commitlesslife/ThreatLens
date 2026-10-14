@@ -5,6 +5,7 @@
   "description": "Locally checks visible messages on sites you enable and investigates selected suspicious links.",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
   "host_permissions": [
+    "<all_urls>",
     "http://localhost:3001/*",
     "http://127.0.0.1:3001/*",
     "http://localhost:4001/*",
@@ -19,8 +20,7 @@
   "content_scripts": [
     {
       "matches": [
-        "http://localhost:4001/fixtures/*",
-        "http://127.0.0.1:4001/fixtures/*"
+        "<all_urls>"
       ],
       "js": ["dist/content.js"],
       "run_at": "document_idle"

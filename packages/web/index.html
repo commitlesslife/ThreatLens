@@ -39,19 +39,43 @@
 
         <!-- Preset Buttons for Quick Rehearsal / Review -->
         <div class="presets-bar">
-          <span class="preset-label">Test Fixtures:</span>
+          <span class="preset-label">Sample Scenarios:</span>
           <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/scholarship" data-msg="URGENT: Your student scholarship disbursement of $2,500 is pending. Verify your campus password within 2 hours.">
             🚨 Scholarship Phish
           </button>
           <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/cloaked" data-msg="Security notice: Please re-authenticate your account on mobile to confirm enrollment.">
-            🛡️ Cloaked Target
+            🛡️ Cloaked Evasion
           </button>
-          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/brand-clone" data-msg="Apex Financial: Unusual activity detected. Please sign in to verify your account identity.">
-            🏦 Brand Clone
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/brand-clone" data-msg="State Federal Bank: Unusual activity detected. Please sign in to verify your account identity.">
+            🏦 Bank Brand Clone
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/credential-harvest" data-msg="Single Sign-On Security Alert: Your institutional session has expired. Re-authenticate credentials and MFA token.">
+            🔑 SSO Credential Harvest
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/payment-fraud" data-msg="FINAL NOTICE: Unpaid departmental vendor invoice #INV-2026-8891 of $14,850 is past due. Immediate wire authorization required.">
+            💳 Wire / Invoice Scam
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/fake-update" data-msg="CRITICAL: Browser zero-day vulnerability CVE-2026-9812 detected. Install hotfix patch immediately.">
+            ⚠️ Fake Security Update
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/gift-card-scam" data-msg="Congratulations Student! You have been selected to receive a $500 Visa Voucher. Enter PIN to claim.">
+            🎁 $500 Reward Scam
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/qr-phish" data-msg="University IT: Authenticator server upgrade. Re-sync your 2FA authenticator QR code now.">
+            📱 2FA QR Phish
+          </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/ceo-fraud" data-msg="CONFIDENTIAL: From Office of the Chancellor. Urgent priority request, please reply with your mobile number immediately.">
+            👔 Chancellor Whaling
           </button>
           <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/benign-portal" data-msg="University Library: Your requested book hold is ready for pickup at the main library desk.">
-            ✅ Benign Portal
+            ✅ Benign Campus Portal
           </button>
+          <button type="button" class="preset-btn" data-url="http://localhost:4001/fixtures/benign-research" data-msg="Systems & Cybersecurity Research Group: Weekly reading group seminar on Friday at 2:00 PM in CS 304.">
+            🔬 Academic Research Lab
+          </button>
+          <a href="http://localhost:4001/fixtures/samples" target="_blank" class="preset-btn" style="background: #1e3a8a; color: #93c5fd; border-color: #3b82f6; text-decoration: none;">
+            🧪 Full Test Fixtures Gallery ↗
+          </a>
         </div>
 
         <form id="intake-form" class="intake-form">
