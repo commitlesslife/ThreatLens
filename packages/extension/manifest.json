@@ -4,12 +4,27 @@
   "version": "0.3.0",
   "description": "Locally checks visible messages on sites you enable and investigates selected suspicious links.",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
-  "host_permissions": ["http://localhost:3001/*", "http://127.0.0.1:3001/*"],
+  "host_permissions": [
+    "http://localhost:3001/*",
+    "http://127.0.0.1:3001/*",
+    "http://localhost:4001/*",
+    "http://127.0.0.1:4001/*"
+  ],
   "optional_host_permissions": [
     "http://localhost:4001/*",
     "http://127.0.0.1:4001/*",
     "https://mail.google.com/*",
     "https://web.whatsapp.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:4001/fixtures/*",
+        "http://127.0.0.1:4001/fixtures/*"
+      ],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
   ],
   "action": { "default_title": "Open ThreatLens Message Inspector" },
   "background": { "service_worker": "dist/background.js", "type": "module" },

@@ -1,5 +1,6 @@
 import { getSettings, grantConsent, revokeConsent, toggleScanning, updateSettings } from "./storage/settings.js";
 import { ExtractedMessage, ExtensionMessage, ExtensionSettings } from "./types.js";
+import { findAdapterForUrl } from "./adapters/index.js";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const viewConsent = $("view-consent");
@@ -63,27 +64,98 @@ async function activeTab() {
   return tab;
 }
 
-async function requestTabScan(): Promise<void> {
-  const tab = await activeTab();
-  if (!tab?.id) return showEmpty("No active browser tab is available.");
-  chrome.tabs.sendMessage(tab.id, { type: "SCAN_VISIBLE_MESSAGES" } satisfies ExtensionMessage, response => {
-    if (chrome.runtime.lastError || !response?.success) {
-      const host = (() => { try { return new URL(tab.url || "").hostname; } catch { return ""; } })();
-      siteAdapterBadge.textContent = "Site access needed or unsupported";
-      showEmpty(host ? `ThreatLens is not enabled for ${host}. Enable a supported site in Settings first.` : "This page cannot be scanned.");
-      return;
-    }
-    renderMessages(response.messages || [], response.siteAdapter || "enabled site");
-  });
+function showEmpty(text: string): void {
+  showEmptyWithAction(text);
 }
 
-function showEmpty(text: string): void {
+function showEmptyWithAction(text: string, actionLabel?: string, onAction?: () => void): void {
   messagesContainer.replaceChildren();
   const empty = document.createElement("div");
   empty.className = "empty-state";
-  const p = document.createElement("p"); p.textContent = text;
-  empty.append(p); messagesContainer.append(empty);
+  const p = document.createElement("p");
+  p.textContent = text;
+  empty.append(p);
+
+  if (actionLabel && onAction) {
+    const btn = document.createElement("button");
+    btn.className = "primary-btn";
+    btn.style.marginTop = "14px";
+    btn.style.fontSize = "13px";
+    btn.style.padding = "8px 14px";
+    btn.textContent = actionLabel;
+    btn.addEventListener("click", onAction);
+    empty.append(btn);
+  }
+
+  messagesContainer.append(empty);
 }
+
+async function requestTabScan(): Promise<void> {
+  const tab = await activeTab();
+  if (!tab?.id || !tab.url) return showEmpty("No active browser tab is available.");
+
+  const url = tab.url;
+
+  // If on the ThreatLens Dashboard (localhost:3000 / 3002), provide friendly guidance
+  const isDashboard = url.includes(":3000") || url.includes(":3002");
+  if (isDashboard) {
+    siteAdapterBadge.textContent = "ThreatLens Web UI";
+    showEmptyWithAction(
+      "You are viewing the ThreatLens Web Dashboard. To inspect messages, switch to the Synthetic Inbox fixture tab.",
+      "Switch to Synthetic Inbox",
+      async () => {
+        const tabs = await chrome.tabs.query({});
+        const fixtureTab = tabs.find(t => t.url?.includes(":4001/fixtures/"));
+        if (fixtureTab?.id) {
+          await chrome.tabs.update(fixtureTab.id, { active: true });
+        } else {
+          await chrome.tabs.create({ url: "http://localhost:4001/fixtures/synthetic-inbox" });
+        }
+      }
+    );
+    return;
+  }
+
+  const adapter = findAdapterForUrl(url);
+  if (!adapter) {
+    const host = (() => { try { return new URL(url).hostname; } catch { return ""; } })();
+    siteAdapterBadge.textContent = "Unsupported site";
+    showEmptyWithAction(
+      host ? `ThreatLens is not enabled for ${host}. Open a supported messaging page or the Synthetic Inbox fixture.` : "This page is not a supported messaging site.",
+      "Open Synthetic Inbox",
+      () => {
+        void chrome.tabs.create({ url: "http://localhost:4001/fixtures/synthetic-inbox" });
+      }
+    );
+    return;
+  }
+
+  // Attempt proactive script injection if needed
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["dist/content.js"]
+    });
+  } catch {
+    // Content script may already be running or permissions may vary
+  }
+
+  chrome.tabs.sendMessage(tab.id, { type: "SCAN_VISIBLE_MESSAGES" } satisfies ExtensionMessage, async response => {
+    if (chrome.runtime.lastError || !response?.success) {
+      siteAdapterBadge.textContent = "Site access needed";
+      showEmptyWithAction(
+        `Enable scanning for ${adapter.name} to inspect visible messages.`,
+        `Enable ${adapter.name}`,
+        async () => {
+          await setSiteEnabled(adapter.id, true);
+        }
+      );
+      return;
+    }
+    renderMessages(response.messages || [], response.siteAdapter || adapter.name);
+  });
+}
+
 
 function renderMessages(messages: ExtractedMessage[], adapter: string): void {
   lastMessages = messages;
@@ -209,7 +281,13 @@ async function revokeEverything(): Promise<void> {
   await refreshView(false);
 }
 
-btnGrantConsent.addEventListener("click", async () => { await grantConsent(); await refreshView(false); });
+btnGrantConsent.addEventListener("click", async () => {
+  await grantConsent();
+  try {
+    await registerSiteScript("synthetic-fixture");
+  } catch {}
+  await refreshView(true);
+});
 btnTogglePause.addEventListener("click", async () => { await toggleScanning(); await refreshView(); });
 btnOpenSettings.addEventListener("click", () => { viewConsent.style.display = "none"; viewActive.style.display = "none"; viewSettings.style.display = "block"; });
 btnCloseSettings.addEventListener("click", async () => { viewSettings.style.display = "none"; await refreshView(); });
@@ -230,4 +308,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.threatlens_settings) void refreshView(false);
 });
 
+// React whenever user switches tabs or navigates to a new page
+chrome.tabs?.onActivated?.addListener(() => {
+  void refreshView();
+});
+
+chrome.tabs?.onUpdated?.addListener((_tabId, changeInfo) => {
+  if (changeInfo.status === "complete") {
+    void refreshView();
+  }
+});
+
 void refreshView();
+

@@ -44,8 +44,8 @@ function launchBrowser(activeWebPort: number) {
   const extPath = path.resolve("packages/extension");
   const userDataDir = path.join(os.tmpdir(), "threatlens-chrome-demo-profile");
   const urls = [
-    `http://localhost:${activeWebPort}`,
-    "http://localhost:4001/fixtures/synthetic-inbox"
+    "http://localhost:4001/fixtures/synthetic-inbox",
+    `http://localhost:${activeWebPort}`
   ];
 
   const browser = findChromiumPath();
@@ -66,8 +66,8 @@ function launchBrowser(activeWebPort: number) {
       });
       child.unref();
       console.log(`  ✓ ${browser.name} opened with:`);
+      console.log(`     • Synthetic Inbox:      http://localhost:4001/fixtures/synthetic-inbox (Active Tab)`);
       console.log(`     • ThreatLens Dashboard: http://localhost:${activeWebPort}`);
-      console.log(`     • Synthetic Inbox:      http://localhost:4001/fixtures/synthetic-inbox`);
       console.log(`     • Pre-loaded Extension: ${extPath}\n`);
       return;
     } catch (err) {
