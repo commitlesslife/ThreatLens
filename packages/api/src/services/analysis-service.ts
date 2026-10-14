@@ -325,7 +325,7 @@ export class AnalysisService {
     } catch {
       // ignore
     }
-    const isFixturePath = [
+    const isFixturePath = url.pathname.startsWith("/fixtures/") || [
       "/fixtures/scholarship",
       "/fixtures/cloaked",
       "/fixtures/benign-portal",
