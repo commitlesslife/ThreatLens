@@ -1,2 +1,2 @@
 @echo off
-npm run demo
+npm run demo -- %*

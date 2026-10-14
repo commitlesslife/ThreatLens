@@ -1,12 +1,102 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import os from "node:os";
+import { execSync, spawn } from "node:child_process";
 import { createApp, ScopeService, AnalysisService, CaseService } from "../packages/api/src/index.js";
 import { createFixtureApp, MockReceiverStore } from "../packages/fixture-server/src/index.js";
 import { app as webApp } from "../packages/web/src/server.js";
 
+function findChromiumPath(): { path: string; name: string } | null {
+  const candidates: { path: string; name: string }[] = [];
+
+  if (process.platform === "win32") {
+    candidates.push(
+      { path: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", name: "Google Chrome" },
+      { path: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", name: "Google Chrome" },
+      { path: path.join(process.env.LOCALAPPDATA || "", "Google\\Chrome\\Application\\chrome.exe"), name: "Google Chrome" },
+      { path: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", name: "Microsoft Edge" },
+      { path: "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe", name: "Microsoft Edge" }
+    );
+  } else if (process.platform === "darwin") {
+    candidates.push(
+      { path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", name: "Google Chrome" },
+      { path: "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", name: "Microsoft Edge" }
+    );
+  } else {
+    candidates.push(
+      { path: "/usr/bin/google-chrome", name: "Google Chrome" },
+      { path: "/usr/bin/google-chrome-stable", name: "Google Chrome" },
+      { path: "/usr/bin/chromium-browser", name: "Chromium" },
+      { path: "/usr/bin/chromium", name: "Chromium" }
+    );
+  }
+
+  for (const c of candidates) {
+    if (c.path && fs.existsSync(c.path)) {
+      return c;
+    }
+  }
+  return null;
+}
+
+function launchBrowser(activeWebPort: number) {
+  const extPath = path.resolve("packages/extension");
+  const userDataDir = path.join(os.tmpdir(), "threatlens-chrome-demo-profile");
+  const urls = [
+    `http://localhost:${activeWebPort}`,
+    "http://localhost:4001/fixtures/synthetic-inbox"
+  ];
+
+  const browser = findChromiumPath();
+
+  if (browser) {
+    console.log(`[Browser] Launching ${browser.name} with ThreatLens MV3 extension pre-loaded...`);
+    const args = [
+      `--load-extension=${extPath}`,
+      `--user-data-dir=${userDataDir}`,
+      "--no-first-run",
+      "--no-default-browser-check",
+      ...urls
+    ];
+    try {
+      const child = spawn(browser.path, args, {
+        detached: true,
+        stdio: "ignore"
+      });
+      child.unref();
+      console.log(`  ✓ ${browser.name} opened with:`);
+      console.log(`     • ThreatLens Dashboard: http://localhost:${activeWebPort}`);
+      console.log(`     • Synthetic Inbox:      http://localhost:4001/fixtures/synthetic-inbox`);
+      console.log(`     • Pre-loaded Extension: ${extPath}\n`);
+      return;
+    } catch (err) {
+      console.warn("  ⚠ Failed to spawn browser directly, falling back to default launcher:", err);
+    }
+  }
+
+  console.log("[Browser] Opening default system browser to demo URLs...");
+  try {
+    if (process.platform === "win32") {
+      execSync(`start http://localhost:${activeWebPort}`, { stdio: "ignore" });
+      execSync("start http://localhost:4001/fixtures/synthetic-inbox", { stdio: "ignore" });
+    } else if (process.platform === "darwin") {
+      execSync(`open http://localhost:${activeWebPort}`);
+      execSync("open http://localhost:4001/fixtures/synthetic-inbox");
+    } else {
+      execSync(`xdg-open http://localhost:${activeWebPort}`);
+      execSync("xdg-open http://localhost:4001/fixtures/synthetic-inbox");
+    }
+  } catch (e) {
+    console.warn("  ⚠ Could not open default browser automatically:", e);
+  }
+}
+
 async function main() {
+  const shouldOpenBrowser = process.argv.includes("--open-browser") || 
+                            process.env.OPEN_BROWSER === "1" || 
+                            process.env.OPEN_BROWSER === "true";
+
   console.clear();
   console.log("=======================================================================");
   console.log("             THREATLENS FULL STACK DEMO RUNNER                        ");
@@ -33,9 +123,19 @@ async function main() {
   console.log("[2/4] Starting Fixture Server & Team Mock Receiver on port 4001...");
   const mockStore = new MockReceiverStore();
   const { app: fixtureApp } = createFixtureApp({ mockStore });
-  const fixtureServer = fixtureApp.listen(4001);
-  await new Promise<void>(res => fixtureServer.once("listening", res));
-  console.log("  ✓ Fixture Server: http://localhost:4001\n");
+  let fixtureServer: http.Server;
+  try {
+    fixtureServer = fixtureApp.listen(4001);
+    await new Promise<void>((res, rej) => {
+      fixtureServer.once("listening", res);
+      fixtureServer.once("error", rej);
+    });
+    console.log("  ✓ Fixture Server: http://localhost:4001\n");
+  } catch (err: any) {
+    console.error(`\n[Error] Could not start Fixture Server on port 4001: ${err.message}`);
+    console.error("Please verify that port 4001 is not already occupied by another service.");
+    process.exit(1);
+  }
 
   // Step 3: Start API Server (Port 3001)
   console.log("[3/4] Starting ThreatLens REST & SSE API on port 3001...");
@@ -47,9 +147,19 @@ async function main() {
   });
   const caseService = new CaseService();
   const apiApp = createApp({ scopeService, analysisService, caseService });
-  const apiServer = apiApp.listen(3001);
-  await new Promise<void>(res => apiServer.once("listening", res));
-  console.log("  ✓ ThreatLens API: http://localhost:3001\n");
+  let apiServer: http.Server;
+  try {
+    apiServer = apiApp.listen(3001);
+    await new Promise<void>((res, rej) => {
+      apiServer.once("listening", res);
+      apiServer.once("error", rej);
+    });
+    console.log("  ✓ ThreatLens API: http://localhost:3001\n");
+  } catch (err: any) {
+    console.error(`\n[Error] Could not start ThreatLens API on port 3001: ${err.message}`);
+    console.error("Please verify that port 3001 is not already occupied by another service.");
+    process.exit(1);
+  }
 
   // Step 4: Start Web Application (Port 3000 or 3002)
   console.log("[4/4] Starting ThreatLens Web Application UI...");
@@ -100,9 +210,16 @@ async function main() {
   console.log("     • Benign Campus Portal: http://localhost:4001/fixtures/benign-portal");
   console.log("     • Mock Canary Receipts: http://localhost:4001/receiver/receipts\n");
   console.log("  🧩 Chrome Extension (MV3):");
-  console.log("     1. Open chrome://extensions and enable 'Developer mode'");
-  console.log("     2. Click 'Load unpacked' and choose: " + path.resolve("packages/extension"));
-  console.log("     3. Open any fixture tab above and launch the ThreatLens side panel\n");
+  console.log("     1. Directory: " + path.resolve("packages/extension"));
+  console.log("     2. Developer Mode: Unpacked MV3 Extension with Side Panel\n");
+
+  if (shouldOpenBrowser) {
+    launchBrowser(activeWebPort);
+  } else {
+    console.log("  💡 Tip: Double-click 'run.bat' or run 'npm run demo -- --open-browser'");
+    console.log("     to automatically launch Chrome with the extension pre-loaded!\n");
+  }
+
   console.log("  Press [Ctrl + C] to halt all services cleanly.\n");
 
   // Keep alive & handle graceful shutdown
