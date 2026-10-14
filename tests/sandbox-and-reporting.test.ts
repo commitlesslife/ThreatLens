@@ -19,6 +19,7 @@ describe("Sandbox, Profiles, Brand Analysis, Probes & Casebook", () => {
   let webBaseUrl: string;
 
   beforeAll(async () => {
+    delete process.env.GEMINI_API_KEY;
     // 1. Fixture Server with Mock Receiver
     mockStore = new MockReceiverStore();
     const { app: fApp } = createFixtureApp({ mockStore });

@@ -3,6 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { execSync, spawn } from "node:child_process";
+
+if (fs.existsSync(".env") && typeof (process as any).loadEnvFile === "function") {
+  try {
+    (process as any).loadEnvFile(".env");
+  } catch {}
+}
+
 import { createApp, ScopeService, AnalysisService, CaseService } from "../packages/api/src/index.js";
 import { createFixtureApp, MockReceiverStore } from "../packages/fixture-server/src/index.js";
 import { app as webApp } from "../packages/web/src/server.js";

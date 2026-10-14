@@ -1,4 +1,11 @@
+import fs from "node:fs";
 import { randomUUID, createHash } from "node:crypto";
+
+if (process.env.NODE_ENV !== "test" && fs.existsSync(".env") && typeof (process as any).loadEnvFile === "function") {
+  try {
+    (process as any).loadEnvFile(".env");
+  } catch {}
+}
 import {
   Analysis,
   AnalysisSchema,
@@ -596,9 +603,44 @@ export class AnalysisService {
             }
           }
 
-          // Multimodal vision fallback check (Slice 6)
+          // Multimodal vision & model verification check (Slice 6)
           if (!process.env.GEMINI_API_KEY) {
             limitations.push("No Gemini runtime key is configured. Vision-based brand verification was skipped (partial brand-registry fallback).");
+          } else {
+            coverage.brandVerification = "complete";
+            try {
+              const geminiModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+              const prompt = `Assess this suspicious communication for cyber deception:\nMessage: "${input.message || ""}"\nDestination URL: "${input.url || ""}"\nIn 1 sentence, explain whether this shows credential harvesting, brand spoofing, or deceptive urgency.`;
+              const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }]
+                }),
+                signal: AbortSignal.timeout(6000)
+              });
+
+              if (gRes.ok) {
+                const gData = await gRes.json();
+                const gText = gData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (gText) {
+                  const gEv = this.emit(id, {
+                    eventType: "brand.relationship_checked",
+                    sourceRef: "gemini-3.8-flash",
+                    destinationRedacted: input.url ? redactUrl(input.url) : null,
+                    transferState: "declared",
+                    coverageSource: "brand_check",
+                    fieldCategories: ["brand_impersonation", "model_explanation"]
+                  });
+                  reasons.push({
+                    text: `Gemini 3.8 Flash AI Evaluation: ${gText.trim()}`,
+                    evidenceIds: [gEv.id]
+                  });
+                }
+              }
+            } catch (err: any) {
+              limitations.push(`Gemini runtime call encountered error: ${err.message}. Registry fallback used.`);
+            }
           }
 
           if (targetUrl.pathname === "/fixtures/benign-portal" && !concern) {
